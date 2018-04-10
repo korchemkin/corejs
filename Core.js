@@ -156,7 +156,74 @@ var Core = (function() {
 
         _config[section][key] = value;
     };
+    /**
+     * @return <Object>
+     */
+    Core.prototype.http = (function() {
+        /**
+         * 
+         * @param <String> method 
+         * @param <String> url 
+         * @param <Any> data 
+         * @constructor
+         */
+        function Request(method, url, data) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(method, url);
 
+            xhr.addEventListener("load", function() {
+                if (typeof this.done !== 'function') {
+                    return;
+                }
+                this.done(xhr);
+            }.bind(this));
+
+            xhr.addEventListener("error", function() {
+                if (typeof this.fail !== 'function') {
+                    return;
+                }
+                this.fail(xhr);
+            }.bind(this));
+
+            xhr.send(data);
+        };
+        /**
+         * 
+         * @param <Function> callback
+         * @return <Object>
+         */
+        Request.prototype.done = function(callback) {
+            this.done = callback;
+            return this;
+        };
+        /**
+         * 
+         * @param <Function> callback
+         * @return <Object>
+         */
+        Request.prototype.fail = function(callback) {
+            this.fail = callback;
+            return this;
+        };
+
+        return {
+            get: function(url, data) {
+                return new Request('GET', url, data);
+            },
+            post: function(url, data) {
+                return new Request('POST', url, data);
+            },
+            put: function(url, data) {
+                return new Request('PUT', url, data);
+            },
+            delete: function(url, data) {
+                return new Request('DELETE', url, data);
+            },
+            upload: function(url, formData) {
+                return new Request('POST', url, formData);
+            },
+        }
+    }());
 
     return {
         getInstance: function() {
