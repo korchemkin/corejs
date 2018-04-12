@@ -162,14 +162,37 @@ var Core = (function() {
     Core.prototype.http = (function() {
         /**
          * 
+         * @param <Object> obj
+         * @private
+         */
+        var _toQueryString = function(obj) {
+            var str = [];
+            for(var prop in obj) {
+                if (obj.hasOwnProperty(prop)) {
+                    str.push(encodeURIComponent(prop) + "=" + encodeURIComponent(obj[prop]));
+                }
+            }
+            return str.join("&");
+         }
+        /**
+         * 
          * @param <String> method 
          * @param <String> url 
          * @param <Any> data 
+         * @param <Array> headers?
          * @constructor
          */
-        function Request(method, url, data) {
+        function Request(method, url, data, headers) {
             var xhr = new XMLHttpRequest();
             xhr.open(method, url);
+
+            if (headers) {
+                headers.forEach(function(header) {
+                    for (var key in header) {
+                        xhr.setRequestHeader(key, header[key]);
+                    }
+                });
+            }
 
             xhr.addEventListener("load", function() {
                 if (typeof this.done !== 'function') {
@@ -208,19 +231,21 @@ var Core = (function() {
 
         return {
             get: function(url, data) {
-                return new Request('GET', url, data);
+                url += '?' + _toQueryString(data);
+                return new Request('GET', url, null);
             },
             post: function(url, data) {
-                return new Request('POST', url, data);
+                return new Request('POST', url, JSON.stringify(data), [{'Content-Type': 'application/json'}]);
             },
             put: function(url, data) {
-                return new Request('PUT', url, data);
+                return new Request('PUT', url, JSON.stringify(data), [{'Content-Type': 'application/json'}]);
             },
             delete: function(url, data) {
-                return new Request('DELETE', url, data);
+                url += '?' + _toQueryString(data);
+                return new Request('DELETE', url, null);
             },
             upload: function(url, formData) {
-                return new Request('POST', url, formData);
+                return new Request('POST', url, formData, [{'Content-Type': 'multipart/form-data'}]);
             },
         }
     }());
