@@ -47,7 +47,9 @@ var Core = (function() {
      * @param <Function> handler
      */
     Core.prototype.on = function(type, handler) {
-        if (type == null || handler == null) {
+        if (type == null 
+            || handler == null 
+            || (typeof handler !== 'function')) {
             return;
         }
 
@@ -55,7 +57,16 @@ var Core = (function() {
             _cache[type] = [];
         }
 
-        _cache[type].push(handler);
+        if (!_cache[type].length) {
+            _cache[type].push(handler);
+        } else {
+            // write only unique handlers
+            for (var i = 0, len = _cache[type].length; i < len; i++) {
+                if (_cache[type][i] && (_cache[type][i].toString() !== handler.toString())) {
+                    _cache[type].push(handler);
+                }
+            }
+        }
     };
     /**
      * Unsubscribe
@@ -63,28 +74,23 @@ var Core = (function() {
      * @param <Function> handler
      */
     Core.prototype.off = function(type, handler) {
-        var temp = [];
-        var i;
-        var len;
-
-        if (!_cache.hasOwnProperty(type) || !_cache[type].length) {
+        if (!_cache.hasOwnProperty(type) 
+            || !_cache[type].length 
+            || (typeof handler !== 'function')) {
             return;
         }
 
-        // remove all identical handlers
-        for (i = 0, len = _cache[type].length; i < len; i++) {
-            if (_cache[type][i].toString() !== handler.toString()) {
-                temp.push(_cache[type][i]);
+        // remove handler
+        for (var i = 0, len = _cache[type].length; i < len; i++) {
+            if (_cache[type][i] && (_cache[type][i].toString() === handler.toString())) {
+                _cache[type].splice(i, 1);
             }
         }
 
-        if (!temp.length) {
+        if (!_cache[type].length) {
             // remove event type if has no handlers
             _cache[type] = null;
             delete _cache[type];
-        } else {
-            // update handlers
-            _cache[type] = temp.slice(0);;
         }
     };
     /**
@@ -99,7 +105,9 @@ var Core = (function() {
         }
 
         for (var i = 0, len = _cache[type].length; i < len; i++) {
-            _cache[type][i](data);
+            if (typeof _cache[type][i] === 'function') {
+                _cache[type][i](data);
+            }
         }
     };
     /**
@@ -262,5 +270,4 @@ var Core = (function() {
 
 }());
 
-// this needs for testing
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = Core;
