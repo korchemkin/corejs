@@ -155,10 +155,10 @@ var Core = (function() {
             var str = [];
             for(var prop in obj) {
                 if (obj.hasOwnProperty(prop)) {
-                    str.push(encodeURIComponent(prop) + "=" + encodeURIComponent(obj[prop]));
+                    str.push(encodeURIComponent(prop) + '=' + encodeURIComponent(obj[prop]));
                 }
             }
-            return str.join("&");
+            return str.join('&');
          }
         /**
          * 
