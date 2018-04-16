@@ -11,8 +11,6 @@ var Core = (function() {
     var _storage = {};
     // Cache for event handlers
     var _cache = {};
-    // App config
-    var _config = {};
 
     /**
      *
@@ -26,7 +24,7 @@ var Core = (function() {
     Core.prototype.destroy = function() {
         // remove all event handlers
         for (var prop in _cache) {
-            _cache[prop] = [];
+            _cache[prop] = null;
             delete _cache[prop];
         };
 
@@ -38,8 +36,6 @@ var Core = (function() {
 
         // destroy instance
         _instance = null;
-
-        return 0;
     };
     /**
      * Subscribe on Core event, can be many subscribers
@@ -48,7 +44,6 @@ var Core = (function() {
      */
     Core.prototype.on = function(type, handler) {
         if (type == null 
-            || handler == null 
             || (typeof handler !== 'function')) {
             return;
         }
@@ -96,7 +91,7 @@ var Core = (function() {
     /**
      * Trigger event
      * @param <String> type
-     * @param <Any> data
+     * @param <Any> data?
      */
     Core.prototype.emit = function(type, data) {
         if (!_cache.hasOwnProperty(type)
@@ -116,7 +111,7 @@ var Core = (function() {
      * @returns <Any>
      */
     Core.prototype.storageGet = function(key) {
-        if (!key || typeof key !== 'string') {
+        if (typeof key !== 'string') {
             return;
         }
 
@@ -128,8 +123,7 @@ var Core = (function() {
      * @param <Any> value
      */
     Core.prototype.storageSet = function(key, value) {
-        if (!key
-            || typeof key !== 'string'
+        if (typeof key !== 'string'
             || typeof value === 'undefined') {
             return;
         }
@@ -141,28 +135,12 @@ var Core = (function() {
      * @param <String> key
      */
     Core.prototype.storageRemove = function(key) {
-        if (!key || typeof key !== 'string') {
+        if (typeof key !== 'string') {
             return;
         }
 
         _storage[key] = null;
         delete _storage[key];
-    };
-    /**
-     *
-     * @param <String> section
-     * @param <String> key
-     * @param <String> value
-     */
-    Core.prototype.setConfigProp = function(section, key, value) {
-        if (!section
-            || !_config.hasOwnProperty(section)
-            || !_config[section].hasOwnProperty(key)
-            || typeof value !== 'string') {
-            return;
-        }
-
-        _config[section][key] = value;
     };
     /**
      * @return <Object>
@@ -191,10 +169,15 @@ var Core = (function() {
          * @constructor
          */
         function Request(method, url, data, headers) {
+            if (typeof method !== 'string' 
+                || typeof url !== 'string') {
+                return;
+            }
+
             var xhr = new XMLHttpRequest();
             xhr.open(method, url);
 
-            if (headers) {
+            if (headers instanceof Array) {
                 headers.forEach(function(header) {
                     for (var key in header) {
                         xhr.setRequestHeader(key, header[key]);
@@ -224,6 +207,10 @@ var Core = (function() {
          * @return <Object>
          */
         Request.prototype.done = function(callback) {
+            if (typeof callback !== 'function') {
+                return;
+            }
+            
             this.done = callback;
             return this;
         };
@@ -233,6 +220,10 @@ var Core = (function() {
          * @return <Object>
          */
         Request.prototype.fail = function(callback) {
+            if (typeof callback !== 'function') {
+                return;
+            }
+            
             this.fail = callback;
             return this;
         };
@@ -269,5 +260,3 @@ var Core = (function() {
     };
 
 }());
-
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = Core;
